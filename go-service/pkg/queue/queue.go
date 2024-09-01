@@ -114,8 +114,27 @@ func (q *Queue) Notify(message []byte, dest *types.QueueDestination) {
 
 }
 
+func (q *Queue) CreateQueue(queueName string) error {
+
+	_, err := q.channel.QueueDeclare(
+		queueName, // name
+		true,      // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
+	)
+	if err != nil {
+		return fmt.Errorf("failed to declare a queue: %v", err)
+	}
+
+	log.Printf("Queue '%s' declared", queueName)
+	return nil
+}
+
 func (q *Queue) CreateQueueAndBind(dest *types.QueueDestination) error {
 
+	q.CreateQueue(dest.QueueName)
 	// Bind the queue to the exchange
 	err := q.channel.QueueBind(
 		dest.QueueName,    // queue name
