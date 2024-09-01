@@ -16,7 +16,6 @@ export class Queue extends EventEmitter implements IQueue {
     this.url = `amqp://${QUEUE_USER}:${QUEUE_PASS}@${QUEUE_HOST}:${QUEUE_PORT}${QUEUE_VHOST}`
 
     this.channel = null
-    this.connect()
   }
 
 

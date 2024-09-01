@@ -32,17 +32,15 @@ export class Hub implements IHub {
     this.configQueue()
   }
 
-  private configQueue() {
+  private async configQueue() {
 
-
+    await this.queue.connect()
     this.queue.on('message', (data: QueueResponse) => {
       const { order, lat, lng } = data
       this.queueStream.push({ order, lat, lng })
     })
 
-    this.queue.on("initiated", () => {
-      this.queue.consumeQueue(QUEUE_NAME).catch(console.error)
-    })
+    this.queue.consumeQueue(QUEUE_NAME).catch(console.error)
   }
   public startHub() {
     this.queueStream.pipe(this.broadcast())
