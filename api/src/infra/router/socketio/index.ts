@@ -21,7 +21,6 @@ export class MountSocketHandler {
     this.io = new Server(this.server, {
       cors: {
         origin: "*",
-        methods: ["GET", "POST"]
       }
     })
     this.streamController = streamController
