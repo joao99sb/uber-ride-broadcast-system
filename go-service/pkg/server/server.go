@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 
 	"github.com/gorilla/handlers"
@@ -17,6 +18,7 @@ import (
 
 type StreamServer struct {
 	clients map[string]*Client
+	mu      sync.Mutex
 	ctx     context.Context
 	cancel  context.CancelFunc
 	server  *http.Server
@@ -51,13 +53,24 @@ func (s *StreamServer) handleWebSocket(controller types.IController) func(w http
 			log.Println(err)
 			return
 		}
+		uuid := utils.GenerateUUID()
+		client := NewClient(conn, uuid)
 
-		client := NewClient(conn, utils.GenerateUUID())
+		s.mu.Lock()
+		s.clients[uuid] = client
+		s.printClients()
+		s.mu.Unlock()
 
 		controller.HandleDriver(client)
 
 	}
 
+}
+func (s *StreamServer) printClients() {
+	fmt.Println("Current clients:")
+	for uuid := range s.clients {
+		fmt.Println(uuid)
+	}
 }
 
 func (s *StreamServer) configServer(controller types.IController) *http.Server {
@@ -79,16 +92,17 @@ func (s *StreamServer) configServer(controller types.IController) *http.Server {
 func (s *StreamServer) Run() {
 
 	log.Println("Server starting on :8082")
-	s.loop()
+	s.start()
 
 }
-func (s *StreamServer) loop() {
+func (s *StreamServer) start() {
 
 	go func() {
 		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("ListenAndServe: %v", err)
 		}
 	}()
+
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt)
 	<-sigChan

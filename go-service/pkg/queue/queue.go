@@ -37,12 +37,6 @@ func (q *Queue) Connect() {
 	q.channel = ch
 }
 
-func (q *Queue) GetChannel() *amqp.Channel {
-	return q.channel
-}
-func (q *Queue) GetConnection() *amqp.Connection {
-	return q.conn
-}
 func (q *Queue) Close() {
 	q.conn.Close()
 	q.channel.Close()
